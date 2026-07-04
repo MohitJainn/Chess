@@ -13,7 +13,7 @@ const io = new Server(server, {
   cors: { origin: "*" },
 });
 
-// roomId -> { players: [socketId, ...], chess: Chess instance }
+
 const rooms = {};
 
 io.on("connection", (socket) => {
@@ -40,7 +40,7 @@ io.on("connection", (socket) => {
     socket.color = color;
     socket.emit("color", color);
 
-    // Send current board state to the joining player (handles reconnect / second player joining mid-game)
+    
     socket.emit("boardState", room.chess.fen());
 
     io.to(roomId).emit("playerCount", room.players.length);
@@ -53,7 +53,7 @@ io.on("connection", (socket) => {
     const chess = room.chess;
     const turnColor = chess.turn() === "w" ? "white" : "black";
 
-    // Reject if it's not this player's turn or this isn't their color
+   
     if (socket.color !== turnColor) {
       socket.emit("invalidMove", "Not your turn");
       return;
@@ -65,10 +65,10 @@ io.on("connection", (socket) => {
       return;
     }
 
-    // Broadcast the validated move to the OTHER player only
+  
     socket.to(roomId).emit("move", move);
 
-    // Optional: tell both players if the game ended
+   
     if (chess.isGameOver()) {
       io.to(roomId).emit("gameOver", {
         isCheckmate: chess.isCheckmate(),
@@ -94,6 +94,7 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(3000, "127.0.0.1", () => {
-  console.log("server listening at http://127.0.0.1:3000");
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server listening on port ${PORT}`);
 });

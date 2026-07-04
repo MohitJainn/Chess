@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 
-const URL = "http://127.0.0.1:3000";
+const URL = import.meta.env.VITE_SOCKET_URL || "http://127.0.0.1:3000";
 
 const socket = import.meta.hot?.data.socket ?? io(URL, {
   transports: ["websocket"],
