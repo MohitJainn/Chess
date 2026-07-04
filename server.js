@@ -10,7 +10,7 @@ process.on("uncaughtException", (err) => {
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: "*" },
+  cors: { origin: "https://your-chess-frontend.onrender.com" },
 });
 
 
