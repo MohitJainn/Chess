@@ -5,6 +5,17 @@ const { Chess } = require("chess.js");
 
 const jwt = require("jsonwebtoken");
 
+
+
+process.on("uncaughtException", (err) => {
+  console.error("SERVER CRASH:", err.message, err.stack);
+});
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: { origin: "https://your-chess-frontend.onrender.com" },
+});
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
   if (!token) return next(new Error("No token"));
@@ -18,17 +29,6 @@ io.use((socket, next) => {
     next(new Error("Invalid token"));
   }
 });
-
-process.on("uncaughtException", (err) => {
-  console.error("SERVER CRASH:", err.message, err.stack);
-});
-
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: { origin: "https://your-chess-frontend.onrender.com" },
-});
-
 
 const rooms = {};
 
