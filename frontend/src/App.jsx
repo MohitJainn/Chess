@@ -2,9 +2,17 @@ import { useState, useEffect, useRef } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import { socket } from "./socket";
+import {supabase} from '@supabase/supabase-js';
+import Auth from "./Auth";
+
 
 function App() {
-   console.log("APP RENDERED");
+  console.log("APP RENDERED");
+  const [session,setSession]=useState(null);
+  const [authLoading,setAuthLoading]=useState(true);
+
+
+  
   const game = useRef(new Chess());  // persists across renders
   const [position, setPosition] = useState(game.current.fen());
   const [roomId, setRoomId] = useState("");
@@ -13,6 +21,19 @@ function App() {
   const [joined, setJoined] = useState(false);
   const [statusMsg, setStatusMsg] = useState("");
   const [gameOverMsg, setGameOverMsg] = useState("");
+
+
+useEffect(()=>{
+  supabase.auth.getSession().then(({data:{session}})=>{
+    setSession(session);
+    setAuthLoading(false);
+  });
+  const {data:listener}=supabase.auth.onAuthStateChange((_event,session)=>{
+  setSession(session);
+});
+return ()=>listener.subscription.unsubscribe();
+
+},[]);
 
   useEffect(() => {
     const savedRoom = sessionStorage.getItem("roomId");

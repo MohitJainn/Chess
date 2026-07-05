@@ -3,6 +3,22 @@ const http = require("http");
 const { Server } = require("socket.io");
 const { Chess } = require("chess.js");
 
+const jwt = require("jsonwebtoken");
+
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token;
+  if (!token) return next(new Error("No token"));
+
+  try {
+    const decoded = jwt.verify(token, process.env.SUPABASE_JWT_SECRET);
+    socket.userId = decoded.sub; // Supabase user ID
+    socket.email = decoded.email;
+    next();
+  } catch (err) {
+    next(new Error("Invalid token"));
+  }
+});
+
 process.on("uncaughtException", (err) => {
   console.error("SERVER CRASH:", err.message, err.stack);
 });
