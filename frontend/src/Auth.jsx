@@ -1,5 +1,5 @@
 import { useState } from "react";
-import {supabase} from '@supabase/supabase-js';
+import {supabase} from './supabaseClient';
 
 function Auth(){
     const [email,setEmail]=useState("");
