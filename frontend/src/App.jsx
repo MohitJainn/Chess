@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import { socket } from "./socket";
-import {supabase} from '@supabase/supabase-js';
+import {supabase} from './supabaseClient';
 import Auth from "./Auth";
 
 
