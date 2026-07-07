@@ -1,22 +1,27 @@
 import { useState } from "react";
-import {supabase} from './supabaseClient';
+import { supabase } from './supabaseClient';
 
-function Auth(){
-    const [email,setEmail]=useState("");
-    const [password,setPassword]=useState("");
-    const [loading,setLoading]=useState(false);
-    const [isSignUp,setIsSignUp]=useState(false);
-    const [error,setError]=useState("");
+function Auth() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [error, setError] = useState("");
 
-    const handleSubmit=async (e)=>{
-        e.preventDefault();
-        setError("");
-        const error=isSignUp?await supabase.auth.signUp({email,password})
-        : await supabase.auth.signInWithPassword({email,password});
-        if(error) setError(error.message);
-        setLoading(false);
-    };
-    return (
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    const { error } = isSignUp
+      ? await supabase.auth.signUp({ email, password })
+      : await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) setError(error.message);
+    setLoading(false);
+  };
+
+  return (
     <div>
       <h2>{isSignUp ? "Sign Up" : "Log In"}</h2>
       <form onSubmit={handleSubmit}>
