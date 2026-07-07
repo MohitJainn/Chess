@@ -12,7 +12,7 @@ function Auth(){
         e.preventDefault();
         setError("");
         const error=isSignUp?await supabase.auth.signUp({email,password})
-        : await supabase.auth.signInwithPassword({email,password});
+        : await supabase.auth.signInWithPassword({email,password});
         if(error) setError(error.message);
         setLoading(false);
     };
