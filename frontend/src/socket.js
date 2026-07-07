@@ -2,24 +2,25 @@ import { io } from "socket.io-client";
 
 const URL = import.meta.env.VITE_SOCKET_URL || "http://127.0.0.1:3000";
 
-const socket = import.meta.hot?.data.socket ?? io(URL, {
-  transports: ["websocket"],
-  reconnectionAttempts: 3,
-  reconnectionDelay: 2000,
-});
+let socket = null;
 
-// Debug — tell us why it's disconnecting
-socket.on("disconnect", (reason) => {
-  console.log("DISCONNECTED:", reason);
-});
+export function getSocket(token) {
+  if (socket) return socket;
 
-socket.on("connect_error", (err) => {
-  console.log("CONNECT ERROR:", err.message);
-});
+  socket = io(URL, {
+    transports: ["websocket", "polling"],
+    reconnectionAttempts: 3,
+    reconnectionDelay: 2000,
+    auth: { token },
+  });
 
-if (import.meta.hot) {
-  import.meta.hot.data.socket = socket;
-  import.meta.hot.accept();
+  socket.on("disconnect", (reason) => {
+    console.log("DISCONNECTED:", reason);
+  });
+
+  socket.on("connect_error", (err) => {
+    console.log("CONNECT ERROR:", err.message);
+  });
+
+  return socket;
 }
-
-export { socket };

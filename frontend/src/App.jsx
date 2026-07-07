@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
-import { socket } from "./socket";
+import { getSocket } from "./socket";
 import {supabase} from './supabaseClient';
 import Auth from "./Auth";
 
@@ -34,13 +34,24 @@ useEffect(()=>{
 return ()=>listener.subscription.unsubscribe();
 
 },[]);
+ const [socket, setSocket] = useState(null);
 
   useEffect(() => {
+    if (session) {
+      const s = getSocket(session.access_token);
+      setSocket(s);
+    }
+  }, [session]);
+
+  useEffect(() => {
+     if (!socket) return;  // wait until socket exists
+
     const savedRoom = sessionStorage.getItem("roomId");
     if (savedRoom) {
       setRoomId(savedRoom);
       socket.emit("joinRoom", savedRoom);
     }
+    
 
     socket.on("color", (color) => {
       setPlayerColor(color);
@@ -94,7 +105,7 @@ return ()=>listener.subscription.unsubscribe();
       socket.off("invalidMove");
       socket.off("gameOver");
     };
-  }, []);
+  }, [socket]);
 
   const joinRoom = () => {
     if (!roomId.trim()) return;
@@ -124,7 +135,8 @@ return ()=>listener.subscription.unsubscribe();
     socket.emit("move", { roomId, move });
     return true;
   }
-
+  if (authLoading) return <p>Loading...</p>;
+  if (!session) return <Auth />;
   return (
     <div>
       <h1>Chess App</h1>
