@@ -4,8 +4,7 @@ const { Server } = require("socket.io");
 const { Chess } = require("chess.js");
 
 const jwt = require("jsonwebtoken");
-
-
+const jwksClient = require("jwks-rsa");
 
 process.on("uncaughtException", (err) => {
   console.error("SERVER CRASH:", err.message, err.stack);
@@ -14,26 +13,41 @@ process.on("uncaughtException", (err) => {
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: "https://your-chess-frontend.onrender.com" },
+  cors: { origin: "https://chess-mu-lime.vercel.app" }, // <-- confirm this matches your actual Vercel URL
 });
+
+// --- Supabase JWKS setup (for ECC/asymmetric signing keys) ---
+const client = jwksClient({
+  jwksUri: `${process.env.SUPABASE_URL}/auth/v1/.well-known/jwks.json`,
+});
+
+function getKey(header, callback) {
+  client.getSigningKey(header.kid, (err, key) => {
+    if (err) return callback(err);
+    const signingKey = key.getPublicKey();
+    callback(null, signingKey);
+  });
+}
+
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
   if (!token) return next(new Error("No token"));
 
-  try {
-    const decoded = jwt.verify(token, process.env.SUPABASE_JWT_SECRET);
+  jwt.verify(token, getKey, { algorithms: ["ES256"] }, (err, decoded) => {
+    if (err) {
+      console.log("JWT verify error:", err.message);
+      return next(new Error("Invalid token"));
+    }
     socket.userId = decoded.sub; // Supabase user ID
     socket.email = decoded.email;
     next();
-  } catch (err) {
-    next(new Error("Invalid token"));
-  }
+  });
 });
 
 const rooms = {};
 
 io.on("connection", (socket) => {
-  console.log("Connected:", socket.id);
+  console.log("Connected:", socket.id, socket.email);
 
   socket.on("joinRoom", (roomId) => {
     if (!rooms[roomId]) {
@@ -49,14 +63,13 @@ io.on("connection", (socket) => {
 
     socket.join(roomId);
     room.players.push(socket.id);
-    
+
     socket.roomId = roomId;
 
     const color = room.players.length === 1 ? "white" : "black";
     socket.color = color;
     socket.emit("color", color);
 
-    
     socket.emit("boardState", room.chess.fen());
 
     io.to(roomId).emit("playerCount", room.players.length);
@@ -69,7 +82,6 @@ io.on("connection", (socket) => {
     const chess = room.chess;
     const turnColor = chess.turn() === "w" ? "white" : "black";
 
-   
     if (socket.color !== turnColor) {
       socket.emit("invalidMove", "Not your turn");
       return;
@@ -81,10 +93,8 @@ io.on("connection", (socket) => {
       return;
     }
 
-  
     socket.to(roomId).emit("move", move);
 
-   
     if (chess.isGameOver()) {
       io.to(roomId).emit("gameOver", {
         isCheckmate: chess.isCheckmate(),
