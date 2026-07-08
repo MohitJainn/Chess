@@ -180,14 +180,18 @@ function App() {
       {statusMsg && <p style={{ color: "red" }}>{statusMsg}</p>}
       {gameOverMsg && <h2>{gameOverMsg}</h2>}
 
-      <Chessboard
-        options={{
-          position: position,
-          onPieceDrop: onDrop,
-          boardOrientation: playerColor || "white",
-          allowDragging: joined && !gameOverMsg,
-        }}
-      />
+      <div className="board-wrap">
+  <Chessboard
+    options={{
+      position: position,
+      onPieceDrop: onDrop,
+      boardOrientation: playerColor || "white",
+      allowDragging: joined && !gameOverMsg,
+      darkSquareStyle: { backgroundColor: "#7c6a4a" },
+      lightSquareStyle: { backgroundColor: "#ede6d6" },
+    }}
+  />
+</div>
     </div>
   );
 }
