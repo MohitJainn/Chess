@@ -1,0 +1,185 @@
+.lobby-page {
+  min-height: 100vh;
+  background: #14120f;
+  background-image:
+    radial-gradient(circle at 15% 10%, rgba(201, 162, 75, 0.06), transparent 40%),
+    radial-gradient(circle at 85% 90%, rgba(201, 162, 75, 0.05), transparent 40%);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  padding: 48px 24px;
+}
+
+.lobby-header {
+  max-width: 880px;
+  margin: 0 auto 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.lobby-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lobby-brand-glyph {
+  font-size: 28px;
+  color: #c9a24b;
+  line-height: 1;
+}
+
+.lobby-brand-name {
+  font-family: 'Georgia', 'Playfair Display', serif;
+  font-size: 22px;
+  color: #ede6d6;
+  letter-spacing: 0.3px;
+}
+
+.lobby-user {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.lobby-user-email {
+  font-size: 13px;
+  color: #8a8175;
+}
+
+.lobby-logout {
+  background: none;
+  border: 1px solid #322b22;
+  color: #8a8175;
+  font-size: 12px;
+  padding: 7px 14px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.lobby-logout:hover {
+  border-color: #c9a24b;
+  color: #c9a24b;
+}
+
+.lobby-checker {
+  max-width: 880px;
+  margin: 0 auto 40px;
+  display: grid;
+  grid-template-columns: repeat(32, 1fr);
+  height: 5px;
+}
+
+.lobby-checker span {
+  background: #201c17;
+}
+
+.lobby-checker span:nth-child(odd) {
+  background: #c9a24b;
+  opacity: 0.7;
+}
+
+.lobby-intro {
+  max-width: 880px;
+  margin: 0 auto 36px;
+}
+
+.lobby-eyebrow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #c9a24b;
+  margin: 0 0 8px;
+}
+
+.lobby-heading {
+  font-family: 'Georgia', 'Playfair Display', serif;
+  font-size: 32px;
+  color: #ede6d6;
+  margin: 0;
+  letter-spacing: 0.2px;
+}
+
+.lobby-grid {
+  max-width: 880px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+}
+
+.lobby-card {
+  position: relative;
+  background: #1c1914;
+  border: 1px solid #2c2620;
+  border-radius: 4px;
+  padding: 28px 24px;
+  cursor: pointer;
+  transition: border-color 0.18s ease, transform 0.18s ease;
+  overflow: hidden;
+}
+
+.lobby-card:hover {
+  border-color: #c9a24b;
+  transform: translateY(-2px);
+}
+
+.lobby-card:hover .lobby-card-arrow {
+  transform: translateX(3px);
+  opacity: 1;
+}
+
+.lobby-card.is-disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.lobby-card.is-disabled:hover {
+  border-color: #2c2620;
+  transform: none;
+}
+
+.lobby-card-glyph {
+  font-size: 26px;
+  color: #c9a24b;
+  margin-bottom: 18px;
+  line-height: 1;
+}
+
+.lobby-card-title {
+  font-family: 'Georgia', 'Playfair Display', serif;
+  font-size: 19px;
+  color: #ede6d6;
+  margin: 0 0 6px;
+}
+
+.lobby-card-desc {
+  font-size: 13px;
+  color: #8a8175;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.lobby-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.lobby-card-tag {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #5c5346;
+  border: 1px solid #322b22;
+  padding: 3px 8px;
+  border-radius: 2px;
+}
+
+.lobby-card-arrow {
+  font-size: 15px;
+  color: #c9a24b;
+  opacity: 0;
+  transition: transform 0.18s ease, opacity 0.18s ease;
+}

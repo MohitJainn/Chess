@@ -4,6 +4,7 @@ import { Chessboard } from "react-chessboard";
 import { getSocket } from "./socket";
 import {supabase} from './supabaseClient';
 import Auth from "./Auth";
+import Lobby from "./Lobby";
 
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
   const [joined, setJoined] = useState(false);
   const [statusMsg, setStatusMsg] = useState("");
   const [gameOverMsg, setGameOverMsg] = useState("");
+  const [view, setView] = useState("lobby"); // "lobby" | "game"
 
 
 useEffect(()=>{
@@ -43,6 +45,21 @@ return ()=>listener.subscription.unsubscribe();
     }
   }, [session]);
 
+
+  if (authLoading) return <p>Loading...</p>;
+if (!session) return <Auth />;
+
+if (view === "lobby") {
+  return (
+    <Lobby
+      userEmail={session.user.email}
+      onSelect={(key) => { if (key === "play") setView("game"); }}
+      onLogout={() => supabase.auth.signOut()}
+    />
+  );
+}
+
+// ...existing chessboard return, unchanged
   useEffect(() => {
      if (!socket) return;  // wait until socket exists
 
