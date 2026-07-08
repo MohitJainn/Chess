@@ -5,6 +5,13 @@ import { getSocket } from "./socket";
 import { supabase } from './supabaseClient';
 import Auth from "./Auth";
 import Lobby from "./Lobby";
+import "./Game.css";
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
 
 function App() {
   console.log("APP RENDERED");
@@ -20,11 +27,14 @@ function App() {
   const game = useRef(new Chess());
   const [position, setPosition] = useState(game.current.fen());
   const [roomId, setRoomId] = useState("");
+  const [minutes, setMinutes] = useState(5);
   const [playerColor, setPlayerColor] = useState("");
   const [playerCount, setPlayerCount] = useState(0);
   const [joined, setJoined] = useState(false);
   const [statusMsg, setStatusMsg] = useState("");
-  const [gameOverMsg, setGameOverMsg] = useState("");
+  const [gameOverInfo, setGameOverInfo] = useState(null); // { text, subtext } or null
+  const [checkInfo, setCheckInfo] = useState({ inCheck: false, turn: null });
+  const [time, setTime] = useState({ white: 0, black: 0 });
   const [socket, setSocket] = useState(null);
 
   // --- Restore session on load ---
@@ -51,24 +61,17 @@ function App() {
   useEffect(() => {
     if (!socket) return;
 
-    const savedRoom = sessionStorage.getItem("roomId");
-    if (savedRoom) {
-      setRoomId(savedRoom);
-      socket.emit("joinRoom", savedRoom);
-    }
-
     socket.on("color", (color) => {
       setPlayerColor(color);
       setJoined(true);
-      sessionStorage.setItem("playerColor", color);
     });
 
     socket.on("playerCount", (count) => {
       setPlayerCount(count);
     });
 
-    socket.on("roomFull", () => {
-      alert("Room Full");
+    socket.on("roomFull", (msg) => {
+      alert(msg || "Room Full");
     });
 
     socket.on("boardState", (fen) => {
@@ -92,11 +95,37 @@ function App() {
       setTimeout(() => setStatusMsg(""), 2000);
     });
 
-    socket.on("gameOver", ({ isCheckmate, isDraw, isStalemate }) => {
-      if (isCheckmate) setGameOverMsg("Checkmate!");
-      else if (isStalemate) setGameOverMsg("Stalemate — draw.");
-      else if (isDraw) setGameOverMsg("Game drawn.");
-      sessionStorage.clear();
+    socket.on("checkStatus", ({ inCheck, turn }) => {
+      setCheckInfo({ inCheck, turn });
+    });
+
+    socket.on("timeUpdate", (t) => {
+      setTime(t);
+    });
+
+    socket.on("opponentLeft", () => {
+      setStatusMsg("Opponent disconnected");
+    });
+
+    socket.on("gameOver", ({ isCheckmate, isDraw, isStalemate, isTimeout, winner }) => {
+      let text = "Game over";
+      let subtext = "";
+
+      if (isCheckmate) {
+        text = "Checkmate";
+        subtext = winner ? `${capitalize(winner)} wins` : "";
+      } else if (isTimeout) {
+        text = "Time's up";
+        subtext = winner ? `${capitalize(winner)} wins on time` : "";
+      } else if (isStalemate) {
+        text = "Stalemate";
+        subtext = "Draw";
+      } else if (isDraw) {
+        text = "Draw";
+        subtext = "";
+      }
+
+      setGameOverInfo({ text, subtext });
     });
 
     return () => {
@@ -106,15 +135,20 @@ function App() {
       socket.off("boardState");
       socket.off("move");
       socket.off("invalidMove");
+      socket.off("checkStatus");
+      socket.off("timeUpdate");
+      socket.off("opponentLeft");
       socket.off("gameOver");
     };
   }, [socket]);
 
-  // --- Plain functions (not hooks, safe to define anywhere) ---
+  function capitalize(s) {
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
   const joinRoom = () => {
-    if (!roomId.trim()) return;
-    sessionStorage.setItem("roomId", roomId);
-    socket.emit("joinRoom", roomId);
+    if (!roomId.trim() || !socket) return;
+    socket.emit("joinRoom", { roomId, minutes });
   };
 
   function isMyTurn() {
@@ -123,7 +157,7 @@ function App() {
   }
 
   function onDrop({ sourceSquare, targetSquare }) {
-    if (!joined || !isMyTurn() || gameOverMsg || !targetSquare) return false;
+    if (!joined || !isMyTurn() || gameOverInfo || !targetSquare) return false;
 
     const move = { from: sourceSquare, to: targetSquare, promotion: "q" };
     let result;
@@ -140,7 +174,25 @@ function App() {
     return true;
   }
 
-  // --- Render logic (all hooks already declared above this point) ---
+  // --- Find the king square that's currently in check, for highlighting ---
+  function getCheckSquareStyles() {
+    if (!checkInfo.inCheck) return {};
+    const board = game.current.board();
+    const kingColor = checkInfo.turn === "white" ? "w" : "b";
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const piece = board[r][c];
+        if (piece && piece.type === "k" && piece.color === kingColor) {
+          const file = "abcdefgh"[c];
+          const rank = 8 - r;
+          return { [`${file}${rank}`]: { backgroundColor: "rgba(200, 60, 50, 0.55)" } };
+        }
+      }
+    }
+    return {};
+  }
+
+  // --- Render logic ---
   if (authLoading) return <p>Loading...</p>;
   if (!session) return <Auth />;
 
@@ -155,43 +207,80 @@ function App() {
   }
 
   return (
-    <div>
-      <h1>Chess App</h1>
-
-      <button onClick={() => setView("lobby")}>← Back to lobby</button>
+    <div className="game-page">
+      <div className="game-topbar">
+        <button className="game-back" onClick={() => setView("lobby")}>← Lobby</button>
+        <h1 className="game-title">Chess</h1>
+      </div>
 
       {!joined && (
-        <>
+        <div className="game-join">
           <input
+            className="game-input"
             type="text"
             placeholder="Room ID"
             value={roomId}
             onChange={(e) => setRoomId(e.target.value)}
           />
-          <button onClick={joinRoom}>Join Room</button>
-        </>
+          <input
+            className="game-input game-input-narrow"
+            type="number"
+            min="1"
+            placeholder="Minutes"
+            value={minutes}
+            onChange={(e) => setMinutes(e.target.value)}
+          />
+          <button className="game-join-btn" onClick={joinRoom}>Join Room</button>
+        </div>
       )}
 
-      <h2>Color: {playerColor || "—"}</h2>
-      <h2>Players: {playerCount}</h2>
-      {joined && playerCount < 2 && (
-        <p>Waiting for opponent to join room <b>{roomId}</b>...</p>
+      {joined && (
+        <div className="game-clocks">
+          <div className={`game-clock ${checkInfo.turn === "black" ? "is-active" : ""}`}>
+            <span className="game-clock-label">Black</span>
+            <span className="game-clock-time">{formatTime(time.black)}</span>
+          </div>
+          <div className={`game-clock ${checkInfo.turn === "white" ? "is-active" : ""}`}>
+            <span className="game-clock-label">White</span>
+            <span className="game-clock-time">{formatTime(time.white)}</span>
+          </div>
+        </div>
       )}
-      {statusMsg && <p style={{ color: "red" }}>{statusMsg}</p>}
-      {gameOverMsg && <h2>{gameOverMsg}</h2>}
+
+      <div className="game-meta">
+        <span>Color: {playerColor || "—"}</span>
+        <span>Players: {playerCount}</span>
+      </div>
+
+      {joined && playerCount < 2 && (
+        <p className="game-waiting">Waiting for opponent to join room <b>{roomId}</b>...</p>
+      )}
+      {statusMsg && <p className="game-status">{statusMsg}</p>}
 
       <div className="board-wrap">
-  <Chessboard
-    options={{
-      position: position,
-      onPieceDrop: onDrop,
-      boardOrientation: playerColor || "white",
-      allowDragging: joined && !gameOverMsg,
-      darkSquareStyle: { backgroundColor: "#7c6a4a" },
-      lightSquareStyle: { backgroundColor: "#ede6d6" },
-    }}
-  />
-</div>
+        <Chessboard
+          options={{
+            position: position,
+            onPieceDrop: onDrop,
+            boardOrientation: playerColor || "white",
+            allowDragging: joined && !gameOverInfo,
+            darkSquareStyle: { backgroundColor: "#7c6a4a" },
+            lightSquareStyle: { backgroundColor: "#ede6d6" },
+            squareStyles: getCheckSquareStyles(),
+          }}
+        />
+      </div>
+
+      {gameOverInfo && (
+        <div className="modal-overlay">
+          <div className="modal-card">
+            <div className="modal-glyph">♚</div>
+            <h2 className="modal-title">{gameOverInfo.text}</h2>
+            {gameOverInfo.subtext && <p className="modal-subtext">{gameOverInfo.subtext}</p>}
+            <button className="modal-btn" onClick={() => setView("lobby")}>Back to lobby</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

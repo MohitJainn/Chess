@@ -1,0 +1,201 @@
+.game-page {
+  min-height: 100vh;
+  background: #14120f;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  padding: 32px 24px 60px;
+}
+
+.game-topbar {
+  max-width: 480px;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.game-back {
+  background: none;
+  border: 1px solid #322b22;
+  color: #8a8175;
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.game-back:hover {
+  border-color: #c9a24b;
+  color: #c9a24b;
+}
+
+.game-title {
+  font-family: 'Georgia', 'Playfair Display', serif;
+  font-size: 20px;
+  color: #ede6d6;
+  margin: 0;
+}
+
+.game-join {
+  max-width: 480px;
+  margin: 0 auto 20px;
+  display: flex;
+  gap: 8px;
+}
+
+.game-input {
+  flex: 1;
+  padding: 10px 12px;
+  background: #1c1914;
+  border: 1px solid #322b22;
+  border-radius: 3px;
+  color: #ede6d6;
+  font-size: 14px;
+}
+
+.game-input-narrow {
+  flex: 0 0 90px;
+}
+
+.game-input:focus {
+  outline: none;
+  border-color: #c9a24b;
+}
+
+.game-join-btn {
+  padding: 10px 18px;
+  background: #c9a24b;
+  color: #14120f;
+  border: none;
+  border-radius: 3px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.game-join-btn:hover {
+  background: #ddb75c;
+}
+
+.game-clocks {
+  max-width: 480px;
+  margin: 0 auto 14px;
+  display: flex;
+  gap: 10px;
+}
+
+.game-clock {
+  flex: 1;
+  background: #1c1914;
+  border: 1px solid #2c2620;
+  border-radius: 3px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: border-color 0.2s ease;
+}
+
+.game-clock.is-active {
+  border-color: #c9a24b;
+}
+
+.game-clock-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #8a8175;
+}
+
+.game-clock-time {
+  font-family: 'Georgia', serif;
+  font-size: 18px;
+  color: #ede6d6;
+  font-variant-numeric: tabular-nums;
+}
+
+.game-meta {
+  max-width: 480px;
+  margin: 0 auto 8px;
+  display: flex;
+  gap: 20px;
+  font-size: 13px;
+  color: #8a8175;
+}
+
+.game-waiting,
+.game-status {
+  max-width: 480px;
+  margin: 0 auto 10px;
+  font-size: 13px;
+  color: #d98f83;
+}
+
+.game-waiting {
+  color: #8a8175;
+}
+
+.board-wrap {
+  width: 100%;
+  max-width: 480px;
+  margin: 12px auto 0;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* --- Game over modal --- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 9, 7, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 24px;
+}
+
+.modal-card {
+  background: #1c1914;
+  border: 1px solid #2c2620;
+  border-radius: 4px;
+  padding: 36px 32px;
+  text-align: center;
+  max-width: 320px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modal-glyph {
+  font-size: 34px;
+  color: #c9a24b;
+  margin-bottom: 10px;
+}
+
+.modal-title {
+  font-family: 'Georgia', 'Playfair Display', serif;
+  font-size: 24px;
+  color: #ede6d6;
+  margin: 0 0 6px;
+}
+
+.modal-subtext {
+  font-size: 14px;
+  color: #8a8175;
+  margin: 0 0 22px;
+}
+
+.modal-btn {
+  padding: 11px 22px;
+  background: #c9a24b;
+  color: #14120f;
+  border: none;
+  border-radius: 3px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.modal-btn:hover {
+  background: #ddb75c;
+}
