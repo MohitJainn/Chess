@@ -2,19 +2,22 @@ import { useState, useEffect, useRef } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import { getSocket } from "./socket";
-import {supabase} from './supabaseClient';
+import { supabase } from './supabaseClient';
 import Auth from "./Auth";
 import Lobby from "./Lobby";
 
-
 function App() {
   console.log("APP RENDERED");
-  const [session,setSession]=useState(null);
-  const [authLoading,setAuthLoading]=useState(true);
 
+  // --- Auth state ---
+  const [session, setSession] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
-  
-  const game = useRef(new Chess());  // persists across renders
+  // --- View routing ---
+  const [view, setView] = useState("lobby"); // "lobby" | "game"
+
+  // --- Game state ---
+  const game = useRef(new Chess());
   const [position, setPosition] = useState(game.current.fen());
   const [roomId, setRoomId] = useState("");
   const [playerColor, setPlayerColor] = useState("");
@@ -22,22 +25,21 @@ function App() {
   const [joined, setJoined] = useState(false);
   const [statusMsg, setStatusMsg] = useState("");
   const [gameOverMsg, setGameOverMsg] = useState("");
-  const [view, setView] = useState("lobby"); // "lobby" | "game"
+  const [socket, setSocket] = useState(null);
 
+  // --- Restore session on load ---
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setAuthLoading(false);
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+    return () => listener.subscription.unsubscribe();
+  }, []);
 
-useEffect(()=>{
-  supabase.auth.getSession().then(({data:{session}})=>{
-    setSession(session);
-    setAuthLoading(false);
-  });
-  const {data:listener}=supabase.auth.onAuthStateChange((_event,session)=>{
-  setSession(session);
-});
-return ()=>listener.subscription.unsubscribe();
-
-},[]);
- const [socket, setSocket] = useState(null);
-
+  // --- Create socket once session exists ---
   useEffect(() => {
     if (session) {
       const s = getSocket(session.access_token);
@@ -45,30 +47,15 @@ return ()=>listener.subscription.unsubscribe();
     }
   }, [session]);
 
-
-  if (authLoading) return <p>Loading...</p>;
-if (!session) return <Auth />;
-
-if (view === "lobby") {
-  return (
-    <Lobby
-      userEmail={session.user.email}
-      onSelect={(key) => { if (key === "play") setView("game"); }}
-      onLogout={() => supabase.auth.signOut()}
-    />
-  );
-}
-
-// ...existing chessboard return, unchanged
+  // --- Socket event listeners ---
   useEffect(() => {
-     if (!socket) return;  // wait until socket exists
+    if (!socket) return;
 
     const savedRoom = sessionStorage.getItem("roomId");
     if (savedRoom) {
       setRoomId(savedRoom);
       socket.emit("joinRoom", savedRoom);
     }
-    
 
     socket.on("color", (color) => {
       setPlayerColor(color);
@@ -84,7 +71,6 @@ if (view === "lobby") {
       alert("Room Full");
     });
 
-    // This now correctly loads the server's FEN into the persistent game ref
     socket.on("boardState", (fen) => {
       game.current.load(fen);
       setPosition(game.current.fen());
@@ -124,6 +110,7 @@ if (view === "lobby") {
     };
   }, [socket]);
 
+  // --- Plain functions (not hooks, safe to define anywhere) ---
   const joinRoom = () => {
     if (!roomId.trim()) return;
     sessionStorage.setItem("roomId", roomId);
@@ -152,11 +139,26 @@ if (view === "lobby") {
     socket.emit("move", { roomId, move });
     return true;
   }
+
+  // --- Render logic (all hooks already declared above this point) ---
   if (authLoading) return <p>Loading...</p>;
   if (!session) return <Auth />;
+
+  if (view === "lobby") {
+    return (
+      <Lobby
+        userEmail={session.user.email}
+        onSelect={(key) => { if (key === "play") setView("game"); }}
+        onLogout={() => supabase.auth.signOut()}
+      />
+    );
+  }
+
   return (
     <div>
       <h1>Chess App</h1>
+
+      <button onClick={() => setView("lobby")}>← Back to lobby</button>
 
       {!joined && (
         <>
