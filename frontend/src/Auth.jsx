@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from './supabaseClient';
+import "./Auth.css";
 
 function Auth() {
   const [email, setEmail] = useState("");
@@ -22,32 +23,67 @@ function Auth() {
   };
 
   return (
-    <div>
-      <h2>{isSignUp ? "Sign Up" : "Log In"}</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit" disabled={loading}>
-          {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Log In"}
-        </button>
-      </form>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <button onClick={() => setIsSignUp(!isSignUp)}>
-        {isSignUp ? "Already have an account? Log in" : "Need an account? Sign up"}
-      </button>
+    <div className="auth-page">
+      <div className="auth-card">
+        <div className="auth-checker">
+          {Array.from({ length: 16 }).map((_, i) => (
+            <span key={i} />
+          ))}
+        </div>
+
+        <div className="auth-body">
+          <div className="auth-glyph">♞</div>
+          <h1 className="auth-title">{isSignUp ? "Create account" : "Welcome back"}</h1>
+          <p className="auth-subtitle">
+            {isSignUp ? "Set up your board" : "Sign in to keep playing"}
+          </p>
+
+          <form onSubmit={handleSubmit}>
+            <div className="auth-field">
+              <label className="auth-label" htmlFor="email">Email</label>
+              <input
+                id="email"
+                className="auth-input"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="auth-field">
+              <label className="auth-label" htmlFor="password">Password</label>
+              <input
+                id="password"
+                className="auth-input"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            <button className="auth-submit" type="submit" disabled={loading}>
+              {loading ? "Please wait..." : isSignUp ? "Sign up" : "Log in"}
+            </button>
+          </form>
+
+          {error && <div className="auth-error">{error}</div>}
+
+          <div className="auth-switch">
+            <p className="auth-switch-text">
+              {isSignUp ? "Already have an account?" : "New here?"}
+            </p>
+            <button className="auth-switch-btn" onClick={() => setIsSignUp(!isSignUp)}>
+              {isSignUp ? "Log in instead" : "Create an account"}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
+
 export default Auth;
