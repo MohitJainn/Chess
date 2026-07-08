@@ -1,12 +1,12 @@
 .counter {
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 5px;
+  font-size: 1rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
   color: var(--accent);
   background: var(--accent-bg);
   border: 2px solid transparent;
-  transition: border-color 0.3s;
-  margin-bottom: 24px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  margin-bottom: 1.5rem;
 
   &:hover {
     border-color: var(--accent-border);
@@ -19,54 +19,58 @@
 
 .hero {
   position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 180px; /* Fluid height instead of strict magic numbers */
 
   .base,
   .framework,
   .vite {
     inset-inline: 0;
-    margin: 0 auto;
+    margin-inline: auto;
   }
 
   .base {
     width: 170px;
     position: relative;
-    z-index: 0;
+    z-index: 1;
   }
 
   .framework,
   .vite {
     position: absolute;
+    transform-style: preserve-3d;
   }
 
+  /* Simplified, realistic isometric angles */
   .framework {
-    z-index: 1;
-    top: 34px;
+    z-index: 3;
+    top: 18%;
     height: 28px;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
-      scale(1.4);
+    transform: perspective(1000px) rotateX(45deg) rotateZ(-30deg) scale(1.3);
   }
 
   .vite {
-    z-index: 0;
-    top: 107px;
+    z-index: 2;
+    top: 55%;
     height: 26px;
     width: auto;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
-      scale(0.8);
+    transform: perspective(1000px) rotateX(45deg) rotateZ(-30deg) scale(0.85);
   }
 }
 
 #center {
   display: flex;
   flex-direction: column;
-  gap: 25px;
+  gap: 1.5rem;
   place-content: center;
   place-items: center;
   flex-grow: 1;
 
   @media (max-width: 1024px) {
-    padding: 32px 20px 24px;
-    gap: 18px;
+    padding: 2rem 1.25rem 1.5rem;
+    gap: 1.125rem;
   }
 }
 
@@ -76,15 +80,12 @@
   text-align: left;
 
   & > div {
-    flex: 1 1 0;
-    padding: 32px;
-    @media (max-width: 1024px) {
-      padding: 24px 20px;
-    }
+    flex: 1 1 0%;
+    padding: 2rem;
   }
 
   .icon {
-    margin-bottom: 16px;
+    margin-bottom: 1rem;
     width: 22px;
     height: 22px;
   }
@@ -92,6 +93,10 @@
   @media (max-width: 1024px) {
     flex-direction: column;
     text-align: center;
+
+    & > div {
+      padding: 1.5rem 1.25rem;
+    }
   }
 }
 
@@ -108,8 +113,12 @@
   list-style: none;
   padding: 0;
   display: flex;
-  gap: 8px;
-  margin: 32px 0 0;
+  gap: 0.5rem;
+  margin-block-start: 2rem;
+
+  li {
+    display: inline-flex;
+  }
 
   .logo {
     height: 18px;
@@ -117,15 +126,15 @@
 
   a {
     color: var(--text-h);
-    font-size: 16px;
+    font-size: 1rem;
     border-radius: 6px;
     background: var(--social-bg);
-    display: flex;
-    padding: 6px 12px;
+    display: inline-flex;
+    padding: 0.375rem 0.75rem;
     align-items: center;
-    gap: 8px;
+    gap: 0.5rem;
     text-decoration: none;
-    transition: box-shadow 0.3s;
+    transition: background 0.2s, box-shadow 0.2s;
 
     &:hover {
       box-shadow: var(--shadow);
@@ -137,12 +146,12 @@
   }
 
   @media (max-width: 1024px) {
-    margin-top: 20px;
+    margin-top: 1.25rem;
     flex-wrap: wrap;
     justify-content: center;
 
     li {
-      flex: 1 1 calc(50% - 8px);
+      flex: 1 1 calc(50% - 0.25rem);
     }
 
     a {
@@ -153,11 +162,13 @@
   }
 }
 
+/* Kept for zero-HTML modifications, but modernized the layout push */
 #spacer {
-  height: 88px;
+  height: 5.5rem;
   border-top: 1px solid var(--border);
+  
   @media (max-width: 1024px) {
-    height: 48px;
+    height: 3rem;
   }
 }
 
@@ -182,10 +193,11 @@
     border-right-color: var(--border);
   }
 }
+
 .board-wrap {
   width: 100%;
   max-width: 480px;
-  margin: 24px auto 0;
+  margin: 1.5rem auto 0;
   border-radius: 4px;
   overflow: hidden;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
