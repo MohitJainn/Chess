@@ -50,31 +50,37 @@ io.on("connection", (socket) => {
   console.log("Connected:", socket.id, socket.email);
 
   socket.on("joinRoom", (roomId) => {
-    if (!rooms[roomId]) {
-      rooms[roomId] = { players: [], chess: new Chess() };
-    }
+  if (!rooms[roomId]) {
+    rooms[roomId] = { players: [], chess: new Chess() };
+  }
 
-    const room = rooms[roomId];
+  const room = rooms[roomId];
 
-    if (room.players.length >= 2) {
-      socket.emit("roomFull");
-      return;
-    }
+  // Reject if this same user is already in the room (e.g. duplicate tab)
+  const alreadyIn = room.players.some((p) => p.userId === socket.userId);
+  if (alreadyIn) {
+    socket.emit("roomFull", "You're already in this room");
+    return;
+  }
 
-    socket.join(roomId);
-    room.players.push(socket.id);
+  if (room.players.length >= 2) {
+    socket.emit("roomFull");
+    return;
+  }
 
-    socket.roomId = roomId;
+  socket.join(roomId);
+  room.players.push({ id: socket.id, userId: socket.userId }); // store both
 
-    const color = room.players.length === 1 ? "white" : "black";
-    socket.color = color;
-    socket.emit("color", color);
+  socket.roomId = roomId;
 
-    socket.emit("boardState", room.chess.fen());
+  const color = room.players.length === 1 ? "white" : "black";
+  socket.color = color;
+  socket.emit("color", color);
 
-    io.to(roomId).emit("playerCount", room.players.length);
-  });
+  socket.emit("boardState", room.chess.fen());
 
+  io.to(roomId).emit("playerCount", room.players.length);
+});
   socket.on("move", ({ roomId, move }) => {
     const room = rooms[roomId];
     if (!room) return;
@@ -105,19 +111,19 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    const roomId = socket.roomId;
-    if (!roomId || !rooms[roomId]) return;
+  const roomId = socket.roomId;
+  if (!roomId || !rooms[roomId]) return;
 
-    rooms[roomId].players = rooms[roomId].players.filter(
-      (id) => id !== socket.id
-    );
+  rooms[roomId].players = rooms[roomId].players.filter(
+    (p) => p.id !== socket.id
+  );
 
-    if (rooms[roomId].players.length === 0) {
-      delete rooms[roomId]; // clean up empty rooms
-    } else {
-      io.to(roomId).emit("playerCount", rooms[roomId].players.length);
-    }
-  });
+  if (rooms[roomId].players.length === 0) {
+    delete rooms[roomId];
+  } else {
+    io.to(roomId).emit("playerCount", rooms[roomId].players.length);
+  }
+});
 });
 
 const PORT = process.env.PORT || 3000;
